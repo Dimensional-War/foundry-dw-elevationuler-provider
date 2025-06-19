@@ -50,27 +50,41 @@ Hooks.once("setup", () => {
     CONFIG.elevationruler.MOVEMENT_TYPES.TELEPORT
   ] = "portal-enter";
 
-  CONFIG.elevationruler.pathfindingCheckTerrains = true;
-
   CONFIG.elevationruler.SPEED.useFontAwesome = true;
   CONFIG.elevationruler.SPEED.terrainSymbol = "\uf071";
+
+  function keyForValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
+  }
 
   /**
    * Given a token, retrieve its base speed.
    * @param {Token} token                   Token whose speed is required
    * @returns {number} Distance, in grid units
    */
-  CONFIG.elevationruler.SPEED.tokenSpeed = function (token) {
-    const speedAttribute =
-      CONFIG.elevationruler.SPEED.ATTRIBUTES[token.movementType] ??
-      CONFIG.elevationruler.SPEED.ATTRIBUTES.WALK;
-    const speed = Number(foundry.utils.getProperty(token, speedAttribute));
-    if (speedAttribute === CONFIG.elevationruler.MOVEMENT_TYPES.TELEPORT) {
-      return Boolean(foundry.utils.getProperty(token, speedAttribute))
-        ? Infinity
-        : speed;
+  CONFIG.elevationruler.SPEED.tokenSpeed = function (token, movementType) {
+    movementType ??= token.movementType;
+    let speed = foundry.utils.getProperty(
+      token,
+      CONFIG.elevationruler.SPEED.ATTRIBUTES[
+        keyForValue(CONFIG.elevationruler.MOVEMENT_TYPES, movementType)
+      ]
+    );
+    if (movementType === CONFIG.elevationruler.MOVEMENT_TYPES.TELEPORT) {
+      return Boolean(speed) ? Infinity : speed;
     } else {
-      return speed;
+      if (speed === null) {
+        speed = foundry.utils.getProperty(
+          token,
+          keyForValue(
+            CONFIG.elevationruler.SPEED.ATTRIBUTES,
+            CONFIG.elevationruler.MOVEMENT_TYPES.WALK
+          )
+        );
+        if (speed === null) return null;
+        return Number(speed);
+      }
+      return Number(speed);
     }
   };
 });
