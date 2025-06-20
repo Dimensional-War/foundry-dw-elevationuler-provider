@@ -64,26 +64,25 @@ Hooks.once("setup", () => {
    */
   CONFIG.elevationruler.SPEED.tokenSpeed = function (token, movementType) {
     movementType ??= token.movementType;
-    let speed = foundry.utils.getProperty(
+    const speed = foundry.utils.getProperty(
       token,
       CONFIG.elevationruler.SPEED.ATTRIBUTES[
         keyForValue(CONFIG.elevationruler.MOVEMENT_TYPES, movementType)
       ]
     );
+    const defaultSpeed = foundry.utils.getProperty(
+      token,
+      CONFIG.elevationruler.SPEED.ATTRIBUTES[
+        keyForValue(
+          CONFIG.elevationruler.MOVEMENT_TYPES,
+          CONFIG.elevationruler.MOVEMENT_TYPES.WALK
+        )
+      ]
+    );
     if (movementType === CONFIG.elevationruler.MOVEMENT_TYPES.TELEPORT) {
-      return Boolean(speed) ? Infinity : speed;
+      return speed ? 100000 : defaultSpeed;
     } else {
-      if (speed === null) {
-        speed = foundry.utils.getProperty(
-          token,
-          keyForValue(
-            CONFIG.elevationruler.SPEED.ATTRIBUTES,
-            CONFIG.elevationruler.MOVEMENT_TYPES.WALK
-          )
-        );
-        if (speed === null) return null;
-        return Number(speed);
-      }
+      if (speed === null) return null;
       return Number(speed);
     }
   };
